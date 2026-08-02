@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aplicação web para registro e acompanhamento de ocorrências de manutenção urbana.">
+  <title>Manutenção Urbana</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="cabecalho">
+      <div class="container cabecalho-conteudo">
+        <div>
+          <h1>Manutenção Urbana</h1>
+          <p>Registro e acompanhamento de ocorrências</p>
+        </div>
+
+        <nav aria-label="Navegação principal">
+          <button
+            type="button"
+            :class="{ ativo: telaAtual === 'inicio' }"
+            @click="telaAtual = 'inicio'">
+            Início
+          </button>
+
+          <button
+            type="button"
+            :class="{ ativo: telaAtual === 'cadastro' }"
+            @click="telaAtual = 'cadastro'">
+            Nova ocorrência
+          </button>
+
+          <button
+            type="button"
+            :class="{ ativo: telaAtual === 'lista' }"
+            @click="telaAtual = 'lista'">
+            Consultar
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section v-if="telaAtual === 'inicio'" class="hero">
+        <div class="hero-texto">
+          <span class="etiqueta">Projeto Integrador II</span>
+          <h2>Ajude a melhorar a mobilidade urbana</h2>
+          <p>
+            Registre buracos nas vias, semáforos com defeito e outros problemas
+            de manutenção urbana. Acompanhe o andamento da solicitação de forma simples.
+          </p>
+
+          <div class="acoes">
+            <button type="button" class="botao primario" @click="telaAtual = 'cadastro'">
+              Registrar ocorrência
+            </button>
+            <button type="button" class="botao secundario" @click="telaAtual = 'lista'">
+              Consultar solicitações
+            </button>
+          </div>
+        </div>
+
+        <aside class="painel-resumo" aria-label="Resumo das ocorrências">
+          <h3>Resumo</h3>
+          <div class="indicadores">
+            <article>
+              <strong>{{ ocorrencias.length }}</strong>
+              <span>Total</span>
+            </article>
+            <article>
+              <strong>{{ totalPorStatus('Aberta') }}</strong>
+              <span>Abertas</span>
+            </article>
+            <article>
+              <strong>{{ totalPorStatus('Em atendimento') }}</strong>
+              <span>Em atendimento</span>
+            </article>
+          </div>
+        </aside>
+      </section>
+
+      <section v-if="telaAtual === 'cadastro'" class="secao">
+        <div class="titulo-secao">
+          <div>
+            <span class="etiqueta">Cadastro</span>
+            <h2>Nova ocorrência</h2>
+          </div>
+          <p>Preencha os dados abaixo para registrar o problema.</p>
+        </div>
+
+        <form class="formulario" @submit.prevent="salvarOcorrencia">
+          <div class="campo">
+            <label for="tipo">Tipo de ocorrência</label>
+            <select id="tipo" v-model="form.tipo" required>
+              <option value="">Selecione</option>
+              <option>Buraco na via</option>
+              <option>Semáforo com defeito</option>
+              <option>Sinalização danificada</option>
+              <option>Outro</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="endereco">Endereço</label>
+            <input
+              id="endereco"
+              v-model.trim="form.endereco"
+              type="text"
+              placeholder="Rua, número e bairro"
+              required>
+          </div>
+
+          <div class="campo campo-largo">
+            <label for="descricao">Descrição</label>
+            <textarea
+              id="descricao"
+              v-model.trim="form.descricao"
+              rows="5"
+              placeholder="Descreva o problema encontrado"
+              required></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="foto">Foto da ocorrência</label>
+            <input id="foto" type="file" accept="image/*" @change="selecionarFoto">
+            <small v-if="form.nomeFoto">Arquivo selecionado: {{ form.nomeFoto }}</small>
+          </div>
+
+          <div class="campo">
+            <label for="localizacao">Localização aproximada</label>
+            <input
+              id="localizacao"
+              v-model.trim="form.localizacao"
+              type="text"
+              placeholder="Ex.: -20.4697, -54.6201">
+          </div>
+
+          <div class="acoes-formulario campo-largo">
+            <button type="button" class="botao secundario" @click="limparFormulario">
+              Limpar
+            </button>
+            <button type="submit" class="botao primario">
+              Salvar ocorrência
+            </button>
+          </div>
+
+          <p v-if="mensagem" class="mensagem-sucesso" role="status">
+            {{ mensagem }}
+          </p>
+        </form>
+      </section>
+
+      <section v-if="telaAtual === 'lista'" class="secao">
+        <div class="titulo-secao">
+          <div>
+            <span class="etiqueta">Consulta</span>
+            <h2>Ocorrências registradas</h2>
+          </div>
+
+          <div class="filtro">
+            <label for="filtroStatus">Filtrar por status</label>
+            <select id="filtroStatus" v-model="filtroStatus">
+              <option value="">Todos</option>
+              <option>Aberta</option>
+              <option>Em atendimento</option>
+              <option>Concluída</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="ocorrenciasFiltradas.length" class="grade-ocorrencias">
+          <article
+            v-for="ocorrencia in ocorrenciasFiltradas"
+            :key="ocorrencia.id"
+            class="cartao-ocorrencia">
+
+            <div class="cartao-topo">
+              <span class="protocolo">Protocolo #{{ ocorrencia.id }}</span>
+              <span class="status" :class="classeStatus(ocorrencia.status)">
+                {{ ocorrencia.status }}
+              </span>
+            </div>
+
+            <h3>{{ ocorrencia.tipo }}</h3>
+            <p><strong>Endereço:</strong> {{ ocorrencia.endereco }}</p>
+            <p><strong>Descrição:</strong> {{ ocorrencia.descricao }}</p>
+            <p v-if="ocorrencia.localizacao">
+              <strong>Localização:</strong> {{ ocorrencia.localizacao }}
+            </p>
+            <p><strong>Data:</strong> {{ ocorrencia.data }}</p>
+
+            <div class="cartao-acoes">
+              <button type="button" @click="avancarStatus(ocorrencia)">
+                Atualizar status
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <p v-else class="estado-vazio">
+          Nenhuma ocorrência encontrada para o filtro selecionado.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Projeto acadêmico — Sistema Web de Manutenção Urbana</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
