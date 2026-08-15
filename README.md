@@ -1,52 +1,54 @@
-# Sistema Web de Manutenção Urbana
+# Sistema Web para Registro e Acompanhamento de Ocorrências de Manutenção Urbana
 
-Aplicação web acadêmica desenvolvida para o Projeto Integrador de Tecnologia da Informação II.
+Projeto acadêmico desenvolvido para o Projeto Integrador de Tecnologia da Informação II - UFMS.
 
-## Objetivo
+## Módulo 3 - Banco de Dados e Controle de Versão
 
-Permitir o registro e o acompanhamento de ocorrências de manutenção urbana, como:
+Nesta etapa foram desenvolvidos:
+- modelo de dados;
+- tabelas e relacionamentos;
+- chaves primárias e estrangeiras;
+- comandos SQL de inserção, consulta, atualização e remoção;
+- organização para versionamento com Git e publicação no GitHub.
 
-- buracos nas vias;
-- semáforos com defeito;
-- sinalização danificada.
+## Entidades
+- usuario
+- categoria
+- status_ocorrencia
+- orgao_responsavel
+- ocorrencia
+- imagem
+- atualizacao_ocorrencia
 
-## Funcionalidades
-
-- página inicial com resumo das ocorrências;
-- cadastro de nova ocorrência;
-- envio do nome de um arquivo de imagem;
-- registro de endereço e localização aproximada;
-- consulta das ocorrências;
-- filtro por status;
-- atualização simulada do status;
-- interface responsiva.
-
-## Tecnologias utilizadas
-
-- HTML5;
-- CSS3;
-- JavaScript;
-- Vue.js 3 por CDN;
-- Git e GitHub.
-
-## Estrutura do projeto
+## Estrutura
 
 ```text
-manutencao-urbana/
-├── index.html
-├── css/
-│   └── style.css
-├── js/
-│   └── app.js
+manutencao-urbana-modulo3/
+├── database/
+│   ├── schema.sql
+│   ├── seed.sql
+│   └── queries.sql
+├── .gitignore
 └── README.md
 ```
 
 ## Como executar
 
-1. Baixe ou clone o repositório.
-2. Abra o arquivo `index.html` em um navegador com acesso à internet.
-3. A biblioteca Vue.js será carregada por CDN.
+1. Instale o MySQL 8 ou superior.
+2. Abra o MySQL Workbench.
+3. Execute `database/schema.sql`.
+4. Execute `database/seed.sql`.
+5. Execute os comandos de `database/queries.sql`.
 
-## Observação
+## Sugestão de commits
 
-Este projeto é um MVP acadêmico. Os dados são armazenados apenas durante a execução da página e serão perdidos ao atualizar o navegador. A integração com banco de dados poderá ser realizada em uma etapa futura.
+```bash
+git add .
+git commit -m "Cria estrutura inicial do banco de dados"
+
+git add .
+git commit -m "Adiciona dados iniciais para testes"
+
+git add .
+git commit -m "Adiciona consultas e operações SQL"
+```
