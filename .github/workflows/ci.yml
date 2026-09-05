@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Verificacoes de qualidade
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verificar arquivos essenciais
+        shell: bash
+        run: |
+          test -f index.html
+          test -f schema.sql
+          test -f seed.sql
+          test -f queries.sql
+
+      - name: Validar HTML
+        run: npx --yes htmlhint index.html
+
+      - name: Verificar sintaxe dos arquivos JavaScript
+        shell: bash
+        run: |
+          if [ -d js ]; then
+            find js -type f -name "*.js" -print0 | xargs -0 -r -n1 node --check
+          fi
+
+      - name: Verificacao simples de segredos
+        shell: bash
+        run: |
+          if grep -RniE --exclude-dir=.git --exclude='*.md' \
+            '(password|passwd|secret|api[_-]?key)[[:space:]]*[:=]' .; then
+            echo "Revise os resultados acima: pode haver dado sensivel no repositorio."
+            exit 1
+          else
+            echo "Nenhum padrao simples de segredo foi encontrado."
+          fi
